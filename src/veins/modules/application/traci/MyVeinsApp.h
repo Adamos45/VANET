@@ -22,7 +22,10 @@
 #define __VEINS_MYVEINSAPP_H_
 
 #include <omnetpp.h>
+#include <list>
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
+#include <string>
+#include <algorithm>
 
 using namespace omnetpp;
 
@@ -41,10 +44,16 @@ class MyVeinsApp : public BaseWaveApplLayer {
         virtual void initialize(int stage);
         virtual void finish();
     protected:
+        struct Rect {Coord coord1; Coord coord2; Coord coord3; Coord coord4;};
+        std::list<Rect> recList;
+        simtime_t lastDroveAt;
+        Coord lastPos;
+        bool sentMessage;
+        Coord currPos;
+    protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);
         virtual void onWSA(WaveServiceAdvertisment* wsa);
-
         virtual void handleSelfMsg(cMessage* msg);
         virtual void handlePositionUpdate(cObject* obj);
     };
