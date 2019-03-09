@@ -48,8 +48,10 @@ class MyVeinsApp : public BaseWaveApplLayer {
         std::list<Rect> recList;
         simtime_t lastDroveAt;
         Coord lastPos;
-        bool sentMessage;
+        bool inRect=false;
+        int senderID;
         Coord currPos;
+        bool isPaired=false;
     protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);
