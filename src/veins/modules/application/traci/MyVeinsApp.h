@@ -50,8 +50,8 @@ class MyVeinsApp : public BaseWaveApplLayer {
         Coord lastPos;
         bool inRect=false;
         int senderID;
-        Coord currPos;
         bool isPaired=false;
+        int pairDistance=INT_MAX;
     protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);
