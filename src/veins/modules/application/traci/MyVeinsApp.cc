@@ -65,8 +65,9 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
             msg.erase(0, find + 1);
             find = msg.find(' ');
             part = msg.substr(0, find);
-            int pairId = std::stoi(part);
-            if (myId != pairId) {
+            int curPairId = std::stoi(part);
+            msg.erase(0, find + 1);
+            if (myId != curPairId) {
                 find = msg.find(' ');
                 part = msg.substr(0, find);
                 msg.erase(0, find + 1);
@@ -76,11 +77,12 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
                 msg.erase(0, find + 1);
                 double y = std::stod(part);
                 Coord Rpos = Coord(x, y);
-                int currPairDistance = Rpos.distance(curPosition);
+                double currPairDistance = Rpos.distance(curPosition);
                 if (currPairDistance < pairDistance) {
                     std::cout << std::to_string(myId) + " informs that "
-                            << pairId << " is currently attached" << std::endl;
-                    isPaired = true;
+                            << curPairId << " is currently attached"
+                            << std::endl;
+                    pairId = curPairId;
                     pairDistance = currPairDistance;
                 }
             }
@@ -116,35 +118,69 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
             find = msg.find(' ');
             i++;
         }
+
         senderRectList.push_back(currRect);
-        double minX, maxX, minY, maxY;
+
         for (std::list<Rect>::iterator it = senderRectList.begin();
                 it != senderRectList.end(); it++) {
-
-            minX = std::min( { (*it).coord1.x, (*it).coord2.x, (*it).coord3.x,
-                    (*it).coord4.x });
-            maxX = std::max( { (*it).coord1.x, (*it).coord2.x, (*it).coord3.x,
-                    (*it).coord4.x });
-            minY = std::min( { (*it).coord1.y, (*it).coord2.y, (*it).coord3.y,
-                    (*it).coord4.y });
-            maxY = std::max( { (*it).coord1.y, (*it).coord2.y, (*it).coord3.y,
-                    (*it).coord4.y });
-
-            if (minX <= curPosition.x && curPosition.x <= maxX
-                    && minY <= curPosition.y && curPosition.y <= maxY) {
-                inRect = true;
-                //std::cout << std::to_string(myId) << " is in "
-                //        << std::to_string(currSenderID) << " rect" << std::endl;
-                senderID = currSenderID;
-                break;
+            //std::cout<<it->coord1<<" "<<it->coord2<<" "<<it->coord3<<" "<<it->coord4<<std::endl;
+            double triangleAreas[4];
+            triangleAreas[0] = triangleArea(&(it->coord1), &(it->coord2),
+                    &curPosition);
+            triangleAreas[1] = triangleArea(&(it->coord2), &(it->coord3),
+                    &curPosition);
+            triangleAreas[2] = triangleArea(&(it->coord3), &(it->coord4),
+                    &curPosition);
+            triangleAreas[3] = triangleArea(&(it->coord4), &(it->coord1),
+                    &curPosition);
+            double triangleAreasSum = 0;
+            for (int i = 0; i < 4; i++) {
+                triangleAreasSum += triangleAreas[i];
+                //std::cout<<"triangleAreas["<<i<<"]="<<triangleAreas[i]<<std::endl;
             }
-            //else
-            //std::cout << std::to_string(myId) << " is NOT in "
-            //<< std::to_string(currSenderID) << " rect " << minX<<" "<<maxX<<" "<<minY<<" "<<maxY <<std::endl;
+            double rectangleArea = triangleArea(&(it->coord1), &(it->coord2),
+                    &(it->coord3))
+                    + triangleArea(&(it->coord3), &(it->coord4), &(it->coord1));
+            //std::cout<<"triangles: "<<triangleAreasSum<<" rectangle: "<<rectangleArea<<std::endl;
+            if (triangleAreasSum <= rectangleArea + 2) {
+                double curSenderDistance = senderLoc.distance(curPosition);
+                if (curSenderDistance < senderDistance
+                        && senderID != currSenderID) {
+                    inRect = true;
+                    senderDistance = curSenderDistance;
+                    //std::cout << std::to_string(myId) << " is in "
+                    //        << std::to_string(currSenderID) << " rect"
+                    //        << std::endl;
+                    senderID = currSenderID;
+                }
+                break;
+            } //else
+              // std::cout << std::to_string(myId) << " is NOT in "
+              //        << std::to_string(currSenderID) << " rect my pos: "
+              //       << curPosition << std::endl;
+
+        }
+    } else if (part == "S") {
+        find = msg.find(' ');
+        std::string part = msg.substr(0, find);
+        msg.erase(0, find + 1);
+        if (myId == std::stoi(part)) {
+            std::cout << msg << " set off" << std::endl;
+            senderID = -1;
         }
     }
 }
-
+double MyVeinsApp::triangleArea(Coord* A, Coord* B, Coord* P) {
+    double a = std::sqrt(
+            (A->x - B->x) * (A->x - B->x) + (A->y - B->y) * (A->y - B->y));
+    double b = std::sqrt(
+            (A->x - P->x) * (A->x - P->x) + (A->y - P->y) * (A->y - P->y));
+    double c = std::sqrt(
+            (B->x - P->x) * (B->x - P->x) + (B->y - P->y) * (B->y - P->y));
+    double p = 0.5 * (a + b + c);
+    //std::cout<<"a: "<<a<<"b: "<<b<<"c: "<<c<<"p: "<<p<<std::endl;
+    return std::sqrt(p * (p - a) * (p - b) * (p - c));
+}
 void MyVeinsApp::onWSA(WaveServiceAdvertisment* wsa) {
     //Your application has received a service advertisement from another car or RSU
     //code for handling the message goes here, see TraciDemo11p.cc for examples
@@ -165,48 +201,110 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
     std::string msg;
     WaveShortMessage* wsm = new WaveShortMessage();
     populateWSM(wsm);
-    if (inRect == true) {
-        msg = "R " + std::to_string(senderID) + " " + std::to_string(myId) + " "
-                + curPosition.info();
-        //std::cout << "Sending: " << msg << std::endl;
+    sendSemaphore = !sendSemaphore;
+    if (mobility->getSpeed() > 0 && hasStopped && senderID == -1) {
+        hasStopped = false;
+        msg = "S " + std::to_string(pairId) + " " + std::to_string(myId);
         wsm->setWsmData(msg.c_str());
+        pairId = -1;
+        pairDistance = INT_MAX;
+        hasStopped = false;
         sendDown(wsm);
-        inRect = false;
-    } else if (isPaired == false) {
-
-        if (mobility->getSpeed() > 1) {
+    } else if (sendSemaphore) {
+        if (inRect == true) {
+            msg = "R " + std::to_string(senderID) + " " + std::to_string(myId)
+                    + " " + curPosition.info();
+            //std::cout << "Sending: " << msg << std::endl;
+            wsm->setWsmData(msg.c_str());
+            inRect = false;
+            sendDelayedDown(wsm, uniform(0.1, 0.3));
+        }
+    } else {
+        if (mobility->getSpeed() > 2) {
             lastDroveAt = simTime();
             double rectAcc = 5;
             Rect rect;
+
+            double x1, y1, x2, y2;
+            x1 = curPosition.x;
+            y1 = curPosition.y;
+            x2 = lastPos.x;
+            y2 = lastPos.y;
+
+            //y=ax+b
+            double a = (y2 - y1) / (x2 - x1);
+            double b = y1 - (a * x1);
+            double oa = -1 / a; //orthogonal functions
+            double ob1 = curPosition.y - oa*curPosition.x;
+            double ob2 = lastPos.y - oa*lastPos.x;
+            double pb1 = b + rectAcc; //parallel functions
+            double pb2 = b - rectAcc;
+
+            double tempx = oa - a;
+            double tempb = pb2 - ob1;
+            if (tempx < 0) {
+                tempx = -tempx;
+                tempb = -tempb;
+            }
+            tempb /= tempx;
+            tempx=oa*tempb+ob1;
+            rect.coord1 = Coord(tempb, tempx);
+
+            tempx = oa - a;
+            tempb = pb1 - ob1;
+            if (tempx < 0) {
+                tempx = -tempx;
+                tempb = -tempb;
+            }
+            tempb /= tempx;
+            tempx=oa*tempb+ob1;
+            rect.coord2 = Coord(tempb, tempx);
+
+            tempx = oa - a;
+            tempb = pb1 - ob2;
+            if (tempx < 0) {
+                tempx = -tempx;
+                tempb = -tempb;
+            }
+            tempb /= tempx;
+            tempx=oa*tempb+ob2;
+            rect.coord3 = Coord(tempb, tempx);
+
+            tempx = oa - a;
+            tempb = pb2 - ob2;
+            if (tempx < 0) {
+                tempx = -tempx;
+                tempb = -tempb;
+            }
+            tempb /= tempx;
+            tempx=oa*tempb+ob2;
+            rect.coord4 = Coord(tempb, tempx);
+            /*
             rect.coord1 = curPosition + Coord(-rectAcc, rectAcc);
             rect.coord2 = lastPos + Coord(-rectAcc, rectAcc);
             rect.coord3 = lastPos + Coord(rectAcc, -rectAcc);
-            rect.coord4 = curPosition + Coord(rectAcc, -rectAcc);
+            rect.coord4 = curPosition + Coord(rectAcc, -rectAcc);*/
             lastPos = curPosition;
             recList.push_back(rect);
-            if (recList.size() >= 2)
+            if (recList.size() >= 5)
                 recList.pop_front();
-
         } else {
+            hasStopped = true;
             msg = "L " + std::to_string(myId) + " " + curPosition.info();
             for (std::list<Rect>::iterator it = recList.begin();
                     it != recList.end(); it++)
                 msg += (*it).coord1.info() + (*it).coord2.info()
                         + (*it).coord3.info() + (*it).coord4.info();
             wsm->setWsmData(msg.c_str());
-            if (dataOnSch) {
-                startService(Channels::SCH2, 42, "Traffic Information Service");
-                //started service and server advertising, schedule message to self to send later
-                scheduleAt(computeAsynchronousSendingTime(1, type_SCH), wsm);
-            } else {
-                //send right away on CCH, because channel switching is disabled
-                //std::cout << "Sending: " << msg << std::endl;
-                if(!isPaired)
-                    sendDelayedDown(wsm, uniform(0.01, 0.1));
-                else
-                    sendDelayedDown(wsm, uniform(1, 2));
-            }
+            /*if (dataOnSch) {
+             startService(Channels::SCH2, 42, "Traffic Information Service");
+             //started service and server advertising, schedule message to self to send later
+             scheduleAt(computeAsynchronousSendingTime(1, type_SCH), wsm);
+             } else {*/
+            //send right away on CCH, because channel switching is disabled
+            //std::cout << "Sending: " << msg << std::endl;
+            if (pairId == -1)
+                sendDelayedDown(wsm, uniform(0.1, 0.2));
         }
-
     }
 }

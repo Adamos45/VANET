@@ -49,15 +49,19 @@ class MyVeinsApp : public BaseWaveApplLayer {
         simtime_t lastDroveAt;
         Coord lastPos;
         bool inRect=false;
-        int senderID;
-        bool isPaired=false;
-        int pairDistance=INT_MAX;
+        int senderID=-1;
+        int pairId=-1; //-1 no pair
+        double pairDistance=std::numeric_limits<double>::infinity();
+        bool hasStopped=false;
+        bool sendSemaphore=true;
+        double senderDistance=std::numeric_limits<double>::infinity();
     protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);
         virtual void onWSA(WaveServiceAdvertisment* wsa);
         virtual void handleSelfMsg(cMessage* msg);
         virtual void handlePositionUpdate(cObject* obj);
+        double triangleArea(Coord* A,Coord* B,Coord*P);
     };
 
 #endif
