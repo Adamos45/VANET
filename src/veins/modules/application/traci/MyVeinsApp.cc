@@ -79,17 +79,17 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
                 Coord Rpos = Coord(x, y);
                 double currPairDistance = Rpos.distance(curPosition);
                 if (currPairDistance < pairDistance) {
-                    std::cout << std::to_string(myId) + " informs that "
-                            << curPairId << " is currently attached"
-                            << std::endl;
+                    //std::cout << std::to_string(myId) + " informs that "
+                    //        << curPairId << " is currently attached"
+                    //        << std::endl;
                     pairId = curPairId;
                     pairDistance = currPairDistance;
                 }
             }
         }
-    } else if (part == "L") {
+    } else if (part == "L" || part == "S") {
         //std::cout << "Location received in " << std::to_string(myId)
-        //       << " I'm in " << curPosition << std::endl;
+        //        << " I'm in " << curPosition << std::endl;
         while (find != std::string::npos) {
             find = msg.find(' ');
             std::string part = msg.substr(0, find);
@@ -123,7 +123,8 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
 
         for (std::list<Rect>::iterator it = senderRectList.begin();
                 it != senderRectList.end(); it++) {
-            //std::cout<<it->coord1<<" "<<it->coord2<<" "<<it->coord3<<" "<<it->coord4<<std::endl;
+            //std::cout << it->coord1 << " " << it->coord2 << " " << it->coord3
+            //        << " " << it->coord4 << std::endl;
             double triangleAreas[4];
             triangleAreas[0] = triangleArea(&(it->coord1), &(it->coord2),
                     &curPosition);
@@ -136,13 +137,20 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
             double triangleAreasSum = 0;
             for (int i = 0; i < 4; i++) {
                 triangleAreasSum += triangleAreas[i];
-                //std::cout<<"triangleAreas["<<i<<"]="<<triangleAreas[i]<<std::endl;
+                //std::cout << "triangleAreas[" << i << "]=" << triangleAreas[i]
+                //        << std::endl;
             }
             double rectangleArea = triangleArea(&(it->coord1), &(it->coord2),
                     &(it->coord3))
                     + triangleArea(&(it->coord3), &(it->coord4), &(it->coord1));
-            //std::cout<<"triangles: "<<triangleAreasSum<<" rectangle: "<<rectangleArea<<std::endl;
+            //std::cout << "triangles: " << triangleAreasSum << " rectangle: "
+            //        << rectangleArea << std::endl;
             if (triangleAreasSum <= rectangleArea + 2) {
+                if (part == "S") {
+                    std::cout << std::to_string(myId) << " informs that first car set off" << std::endl;
+                    senderID = -1;
+                    receivedSetOff = true;
+                }
                 double curSenderDistance = senderLoc.distance(curPosition);
                 if (curSenderDistance < senderDistance
                         && senderID != currSenderID) {
@@ -155,18 +163,10 @@ void MyVeinsApp::onWSM(WaveShortMessage* wsm) {
                 }
                 break;
             } //else
-              // std::cout << std::to_string(myId) << " is NOT in "
-              //        << std::to_string(currSenderID) << " rect my pos: "
-              //       << curPosition << std::endl;
+               // std::cout << std::to_string(myId) << " is NOT in "
+                //        << std::to_string(currSenderID) << " rect my pos: "
+                 //       << curPosition << std::endl;
 
-        }
-    } else if (part == "S") {
-        find = msg.find(' ');
-        std::string part = msg.substr(0, find);
-        msg.erase(0, find + 1);
-        if (myId == std::stoi(part)) {
-            std::cout << msg << " set off" << std::endl;
-            senderID = -1;
         }
     }
 }
@@ -202,13 +202,19 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
     WaveShortMessage* wsm = new WaveShortMessage();
     populateWSM(wsm);
     sendSemaphore = !sendSemaphore;
-    if (mobility->getSpeed() > 0 && hasStopped && senderID == -1) {
+    if ((mobility->getSpeed() > 0 && hasStopped && senderID == -1)
+            || receivedSetOff == true) {
         hasStopped = false;
-        msg = "S " + std::to_string(pairId) + " " + std::to_string(myId);
+        msg = "S " + std::to_string(myId) + " " + curPosition.info();
+        for (std::list<Rect>::iterator it = recList.begin();
+                it != recList.end(); it++)
+            msg += (*it).coord1.info() + (*it).coord2.info()
+                    + (*it).coord3.info() + (*it).coord4.info();
         wsm->setWsmData(msg.c_str());
         pairId = -1;
         pairDistance = INT_MAX;
         hasStopped = false;
+        receivedSetOff = false;
         sendDown(wsm);
     } else if (sendSemaphore) {
         if (inRect == true) {
@@ -217,14 +223,12 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
             //std::cout << "Sending: " << msg << std::endl;
             wsm->setWsmData(msg.c_str());
             inRect = false;
-            sendDelayedDown(wsm, uniform(0.1, 0.3));
+            sendDelayedDown(wsm, uniform(0.00001, 0.00003));
         }
     } else {
-        if (mobility->getSpeed() > 2) {
-            lastDroveAt = simTime();
-            double rectAcc = 5;
+        if (mobility->getSpeed() > 0) {
             Rect rect;
-
+            double rectAcc = 5;
             double x1, y1, x2, y2;
             x1 = curPosition.x;
             y1 = curPosition.y;
@@ -234,9 +238,10 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
             //y=ax+b
             double a = (y2 - y1) / (x2 - x1);
             double b = y1 - (a * x1);
+            if(!a) a=0.000001;
             double oa = -1 / a; //orthogonal functions
-            double ob1 = curPosition.y - oa*curPosition.x;
-            double ob2 = lastPos.y - oa*lastPos.x;
+            double ob1 = curPosition.y - oa * curPosition.x;
+            double ob2 = lastPos.y - oa * lastPos.x;
             double pb1 = b + rectAcc; //parallel functions
             double pb2 = b - rectAcc;
 
@@ -247,7 +252,7 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
                 tempb = -tempb;
             }
             tempb /= tempx;
-            tempx=oa*tempb+ob1;
+            tempx = oa * tempb + ob1;
             rect.coord1 = Coord(tempb, tempx);
 
             tempx = oa - a;
@@ -257,7 +262,7 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
                 tempb = -tempb;
             }
             tempb /= tempx;
-            tempx=oa*tempb+ob1;
+            tempx = oa * tempb + ob1;
             rect.coord2 = Coord(tempb, tempx);
 
             tempx = oa - a;
@@ -267,7 +272,7 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
                 tempb = -tempb;
             }
             tempb /= tempx;
-            tempx=oa*tempb+ob2;
+            tempx = oa * tempb + ob2;
             rect.coord3 = Coord(tempb, tempx);
 
             tempx = oa - a;
@@ -277,18 +282,14 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
                 tempb = -tempb;
             }
             tempb /= tempx;
-            tempx=oa*tempb+ob2;
+            tempx = oa * tempb + ob2;
             rect.coord4 = Coord(tempb, tempx);
-            /*
-            rect.coord1 = curPosition + Coord(-rectAcc, rectAcc);
-            rect.coord2 = lastPos + Coord(-rectAcc, rectAcc);
-            rect.coord3 = lastPos + Coord(rectAcc, -rectAcc);
-            rect.coord4 = curPosition + Coord(rectAcc, -rectAcc);*/
+
             lastPos = curPosition;
             recList.push_back(rect);
-            if (recList.size() >= 5)
+            if (recList.size() >= 20)
                 recList.pop_front();
-        } else {
+        } else if (simTime() - lastDroveAt > 5) {
             hasStopped = true;
             msg = "L " + std::to_string(myId) + " " + curPosition.info();
             for (std::list<Rect>::iterator it = recList.begin();
@@ -304,7 +305,7 @@ void MyVeinsApp::handlePositionUpdate(cObject* obj) {
             //send right away on CCH, because channel switching is disabled
             //std::cout << "Sending: " << msg << std::endl;
             if (pairId == -1)
-                sendDelayedDown(wsm, uniform(0.1, 0.2));
+                sendDelayedDown(wsm, uniform(0.01, 0.02));
         }
     }
 }

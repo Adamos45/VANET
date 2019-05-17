@@ -55,6 +55,7 @@ class MyVeinsApp : public BaseWaveApplLayer {
         bool hasStopped=false;
         bool sendSemaphore=true;
         double senderDistance=std::numeric_limits<double>::infinity();
+        bool receivedSetOff=false;
     protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);

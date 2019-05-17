@@ -1,0 +1,16 @@
+<configuration>
+    <input>
+        <net-file value="erlangen.net.xml"/>
+        <route-files value="vanet_routes.rou.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="250"/>
+		<step-length value="0.01"/>
+    </time>
+	
+    <processing>
+        <step-method.ballistic value="true"/>
+    </processing>
+	
+</configuration>

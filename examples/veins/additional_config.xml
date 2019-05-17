@@ -1,0 +1,20 @@
+<configuration>
+	<vehicles>
+		<quantity value="30"/>
+        <reflex_dist>
+            <delay value="0.2" chance="1"/>
+            <delay value="0.4" chance="4"/>
+            <delay value="0.6" chance="6"/>
+            <delay value="0.8" chance="4"/>
+            <delay value="1" chance="1"/>
+        </reflex_dist>
+	</vehicles>
+    <map_info>
+        <in_edges>
+            <edge value="01"/>
+        </in_edges>
+        <out_edges>
+            <edge value="12"/>
+        </out_edges>
+	</map_info>
+</configuration>
