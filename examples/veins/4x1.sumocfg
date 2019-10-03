@@ -1,0 +1,15 @@
+<configuration>
+    <input>
+        <net-file value="4x1.net.xml"/>
+        <route-files value="4x1.rou.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+	<step-length value="0.001"/>
+    </time>
+	
+    <processing>
+        <step-method.ballistic value="true"/>
+    </processing>
+	
+</configuration>

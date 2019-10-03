@@ -26,6 +26,8 @@
 #include "veins/modules/application/ieee80211p/BaseWaveApplLayer.h"
 #include <string>
 #include <algorithm>
+#include <fstream>
+#include <cmath>
 
 using namespace omnetpp;
 
@@ -43,7 +45,7 @@ class MyVeinsApp : public BaseWaveApplLayer {
     public:
         virtual void initialize(int stage);
         virtual void finish();
-    protected:
+    private:
         struct Rect {Coord coord1; Coord coord2; Coord coord3; Coord coord4;};
         std::list<Rect> recList;
         simtime_t lastDroveAt;
@@ -56,6 +58,8 @@ class MyVeinsApp : public BaseWaveApplLayer {
         bool sendSemaphore=true;
         double senderDistance=std::numeric_limits<double>::infinity();
         bool receivedSetOff=false;
+        std::fstream fout;
+        bool hasSetOff = false;
     protected:
         virtual void onBSM(BasicSafetyMessage* bsm);
         virtual void onWSM(WaveShortMessage* wsm);
@@ -63,6 +67,10 @@ class MyVeinsApp : public BaseWaveApplLayer {
         virtual void handleSelfMsg(cMessage* msg);
         virtual void handlePositionUpdate(cObject* obj);
         double triangleArea(Coord* A,Coord* B,Coord*P);
+        void calculateAreaBehindCar();
+        bool checkIfInArea(std::list<Rect>* senderRectList);
+        void matchPair(size_t find, std::string* msg);
+        int receiveArea(size_t find, std::list<Rect>* senderRectList, std::string* msg, Coord* senderLoc);
     };
 
 #endif

@@ -1,0 +1,94 @@
+<routes>
+  <vType actionStepLength="0.4" departSpeed="max" id="0.4" tau="0.5" />
+  <vType actionStepLength="0" departSpeed="max" id="0" tau=".1" />
+  <route edges="0111 1110" id="0110" />
+  <route edges="0111 1112" id="0112" />
+  <route edges="0111 1121 2122" id="0122" />
+  <route edges="0111 1121 2120" id="0120" />
+  <route edges="0111 1121 2131" id="0131" />
+  <route edges="1011 1101" id="1001" />
+  <route edges="1011 1112" id="1012" />
+  <route edges="1011 1121 2122" id="1022" />
+  <route edges="1011 1121 2120" id="1020" />
+  <route edges="1011 1121 2131" id="1031" />
+  <route edges="1211 1101" id="1201" />
+  <route edges="1211 1110" id="1210" />
+  <route edges="1211 1121 2122" id="1222" />
+  <route edges="1211 1121 2120" id="1220" />
+  <route edges="1211 1121 2131" id="1231" />
+  <route edges="2221 2111 1101" id="2201" />
+  <route edges="2221 2111 1110" id="2210" />
+  <route edges="2221 2111 1112" id="2212" />
+  <route edges="2221 2120" id="2220" />
+  <route edges="2221 2131" id="2231" />
+  <route edges="2021 2111 1101" id="2001" />
+  <route edges="2021 2111 1110" id="2010" />
+  <route edges="2021 2111 1112" id="2012" />
+  <route edges="2021 2122" id="2022" />
+  <route edges="2021 2131" id="2031" />
+  <route edges="3121 2111 1101" id="3101" />
+  <route edges="3121 2111 1110" id="3110" />
+  <route edges="3121 2111 1112" id="3112" />
+  <route edges="3121 2122" id="3122" />
+  <route edges="3121 2120" id="3120" />
+  <vehicle depart="0" id="0" route="1020" type="0.4" />
+  <vehicle depart="1" id="1" route="0120" type="0" />
+  <vehicle depart="2" id="2" route="0120" type="0" />
+  <vehicle depart="3" id="3" route="0122" type="0" />
+  <vehicle depart="4" id="4" route="0112" type="0" />
+  <vehicle depart="5" id="5" route="2022" type="0" />
+  <vehicle depart="6" id="6" route="1222" type="0" />
+  <vehicle depart="7" id="7" route="3112" type="0" />
+  <vehicle depart="8" id="8" route="2001" type="0" />
+  <vehicle depart="9" id="9" route="2212" type="0" />
+  <vehicle depart="10" id="10" route="1022" type="0" />
+  <vehicle depart="11" id="11" route="1210" type="0" />
+  <vehicle depart="12" id="12" route="1210" type="0" />
+  <vehicle depart="13" id="13" route="0131" type="0" />
+  <vehicle depart="14" id="14" route="2012" type="0" />
+  <vehicle depart="15" id="15" route="3112" type="0" />
+  <vehicle depart="16" id="16" route="1031" type="0" />
+  <vehicle depart="17" id="17" route="2212" type="0" />
+  <vehicle depart="18" id="18" route="0112" type="0" />
+  <vehicle depart="19" id="19" route="1022" type="0" />
+  <vehicle depart="20" id="20" route="1220" type="0" />
+  <vehicle depart="21" id="21" route="1031" type="0" />
+  <vehicle depart="22" id="22" route="2001" type="0" />
+  <vehicle depart="23" id="23" route="0120" type="0" />
+  <vehicle depart="24" id="24" route="1222" type="0" />
+  <vehicle depart="25" id="25" route="1022" type="0" />
+  <vehicle depart="26" id="26" route="0122" type="0" />
+  <vehicle depart="27" id="27" route="0122" type="0" />
+  <vehicle depart="28" id="28" route="3101" type="0" />
+  <vehicle depart="29" id="29" route="1220" type="0" />
+  <vehicle depart="30" id="30" route="1222" type="0" />
+  <vehicle depart="31" id="31" route="1031" type="0" />
+  <vehicle depart="32" id="32" route="3120" type="0" />
+  <vehicle depart="33" id="33" route="2012" type="0" />
+  <vehicle depart="34" id="34" route="3101" type="0" />
+  <vehicle depart="35" id="35" route="0112" type="0" />
+  <vehicle depart="36" id="36" route="2201" type="0" />
+  <vehicle depart="37" id="37" route="0122" type="0" />
+  <vehicle depart="38" id="38" route="1012" type="0" />
+  <vehicle depart="39" id="39" route="1020" type="0" />
+  <vehicle depart="40" id="40" route="2010" type="0" />
+  <vehicle depart="41" id="41" route="1220" type="0" />
+  <vehicle depart="42" id="42" route="2022" type="0" />
+  <vehicle depart="43" id="43" route="2001" type="0" />
+  <vehicle depart="44" id="44" route="2220" type="0" />
+  <vehicle depart="45" id="45" route="1220" type="0" />
+  <vehicle depart="46" id="46" route="3110" type="0" />
+  <vehicle depart="47" id="47" route="2001" type="0" />
+  <vehicle depart="48" id="48" route="2212" type="0" />
+  <vehicle depart="49" id="49" route="1031" type="0" />
+  <vehicle depart="50" id="50" route="0122" type="0" />
+  <vehicle depart="51" id="51" route="0110" type="0" />
+  <vehicle depart="52" id="52" route="1210" type="0" />
+  <vehicle depart="53" id="53" route="1201" type="0" />
+  <vehicle depart="54" id="54" route="1220" type="0" />
+  <vehicle depart="55" id="55" route="1022" type="0" />
+  <vehicle depart="56" id="56" route="2012" type="0" />
+  <vehicle depart="57" id="57" route="0110" type="0" />
+  <vehicle depart="58" id="58" route="0120" type="0" />
+  <vehicle depart="59" id="59" route="1210" type="0" />
+</routes>
